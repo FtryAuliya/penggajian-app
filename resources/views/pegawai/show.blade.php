@@ -73,7 +73,7 @@
                                 </tr>
                                 <tr>
                                     <th>Lama Bekerja</th>
-                                    <td>: {{ \Carbon\Carbon::parse($pegawai->tanggal_masuk)->diffForHumans() }}</td>
+                                    <td>: {{ $pegawai->masa_kerja }} Tahun</td>
                                 </tr>
                                 <tr>
                                     <th>Status</th>

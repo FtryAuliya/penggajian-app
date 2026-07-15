@@ -69,6 +69,66 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-calendar-alt fa-3x text-info mb-3"></i>
+                                    <h5>Masa Kerja > 5 Tahun</h5>
+                                    <p class="text-muted">Pegawai dengan pengalaman > 5 tahun</p>
+                                    <a href="{{ route('laporan.masa-kerja-5-tahun') }}" class="btn btn-info">
+                                        <i class="fas fa-eye"></i> Lihat Laporan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-trophy fa-3x text-warning mb-3"></i>
+                                    <h5>Urutan Gaji Tertinggi</h5>
+                                    <p class="text-muted">Top 10 pegawai dengan gaji tertinggi</p>
+                                    <a href="{{ route('laporan.urutan-gaji-bersih') }}" class="btn btn-warning">
+                                        <i class="fas fa-eye"></i> Lihat Laporan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-pie fa-3x text-success mb-3"></i>
+                                    <h5>Jumlah Pegawai per Golongan</h5>
+                                    <p class="text-muted">Distribusi pegawai berdasarkan golongan</p>
+                                    <a href="{{ route('laporan.jumlah-pegawai-per-golongan') }}" class="btn btn-success">
+                                        <i class="fas fa-eye"></i> Lihat Laporan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-utensils fa-3x text-primary mb-3"></i>
+                                    <h5>Rekap Tunjangan</h5>
+                                    <p class="text-muted">Total tunjangan makan & transport per bulan</p>
+                                    <a href="{{ route('laporan.rekap-tunjangan') }}" class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> Lihat Laporan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line fa-3x text-danger mb-3"></i>
+                                    <h5>Perbandingan Gaji & Potongan</h5>
+                                    <p class="text-muted">Perbandingan per golongan</p>
+                                    <a href="{{ route('laporan.perbandingan-gaji-potongan') }}" class="btn btndanger">
+                                        <i class="fas fa-eye"></i> Lihat Laporan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

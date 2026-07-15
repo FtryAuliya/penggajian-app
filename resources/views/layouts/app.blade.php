@@ -53,6 +53,7 @@
                             <i class="fas fa-chart-line"></i> Laporan
                         </a>
                         <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">Laporan Dasar</h6></li>
                             <li><a class="dropdown-item" href="{{ route('laporan.slip-gaji') }}">
                                 <i class="fas fa-receipt"></i> Slip Gaji</a>
                             </li>
@@ -67,6 +68,23 @@
                             </li>
                             <li><a class="dropdown-item" href="{{ route('laporan.total-gaji-per-bulan') }}">
                                 <i class="fas fa-chart-bar"></i> Total Gaji per Bulan</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Laporan Lanjutan</h6></li>
+                            <li><a class="dropdown-item" href="{{ route('laporan.masa-kerja-5-tahun') }}">
+                                <i class="fas fa-calendar-alt"></i> Masa Kerja > 5 Tahun</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ route('laporan.urutan-gaji-bersih') }}">
+                                <i class="fas fa-trophy"></i> Urutan Gaji Tertinggi</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ route('laporan.jumlah-pegawai-per-golongan') }}">
+                                <i class="fas fa-chart-pie"></i> Jumlah per Golongan</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ route('laporan.rekap-tunjangan') }}">
+                                <i class="fas fa-utensils"></i> Rekap Tunjangan</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ route('laporan.perbandingan-gaji-potongan') }}">
+                                <i class="fas fa-chart-line"></i> Perbandingan Gaji & Potongan</a>
                             </li>
                         </ul>
                     </li>

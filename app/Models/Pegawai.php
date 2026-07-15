@@ -53,4 +53,11 @@ class Pegawai extends Model
             ->orderBy('bulan', 'desc')
             ->first();
     }
+    /**
+     * Mendapatkan masa kerja pegawai dalam tahun
+     */
+    public function getMasaKerjaAttribute(): int
+    {
+        return $this->tanggal_masuk ? $this->tanggal_masuk->diffInYears(now()) : 0;
+    }
 }

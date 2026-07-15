@@ -32,4 +32,9 @@ Route::prefix('laporan')->name('laporan.')->group(function () {
     Route::get('/potongan-terbesar', [LaporanController::class, 'potonganTerbesar'])->name('potongan-terbesar');
     Route::get('/total-gaji-per-bulan', [LaporanController::class, 'totalGajiPerBulan'])->name('total-gaji-per-bulan');
     Route::get('/export-pdf/{jenis}', [LaporanController::class, 'exportPdf'])->name('export-pdf');
+    Route::get('/masa-kerja-5-tahun', [LaporanController::class, 'masaKerjaLimaTahun'])->name('masa-kerja-5-tahun');
+    Route::get('/urutan-gaji-bersih', [LaporanController::class, 'urutanGajiBersih'])->name('urutan-gaji-bersih');
+    Route::get('/jumlah-pegawai-per-golongan', [LaporanController::class, 'jumlahPegawaiPerGolongan'])->name('jumlah-pegawai-per-golongan');
+    Route::get('/rekap-tunjangan', [LaporanController::class, 'rekapTunjangan'])->name('rekap-tunjangan');
+    Route::get('/perbandingan-gaji-potongan', [LaporanController::class, 'perbandinganGajiPotongan'])->name('perbandingan-gaji-potongan');
 });

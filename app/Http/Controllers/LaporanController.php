@@ -8,6 +8,7 @@ use App\Models\Golongan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
@@ -183,10 +184,22 @@ max_potongan'))
                     ->get();
                 $pdf = Pdf::loadView('laporan.pdf.rekap-departemen', compact('rekap'));
                 return $pdf->download('rekap-gaji-departemen.pdf');
+            case 'urutan-gaji':
+                $data = KomponenGaji::with('pegawai')
+                    ->orderBy('gaji_bersih', 'desc')
+                    ->take(10)
+                    ->get();
+                $pdf = Pdf::loadView('laporan.pdf.urutan-gaji', compact('data'));
+                return $pdf->download('urutan-gaji-tertinggi.pdf');
+            case 'jumlah-pegawai-golongan':
+                $data = Golongan::withCount('pegawai')->get();
+                $pdf = Pdf::loadView('laporan.pdf.jumlah-pegawai-golongan', compact('data'));
+                return $pdf->download('jumlah-pegawai-per-golongan.pdf');
             default:
                 return redirect()->back()->with('error', 'Laporan tidak ditemukan');
         }
     }
+
     /**
      * Helper: Daftar bulan
      */
@@ -206,5 +219,187 @@ max_potongan'))
             11 => 'November',
             12 => 'Desember'
         ];
+    }
+
+    /**
+     * LAPORAN 6: Pegawai dengan Masa Kerja > 5 Tahun
+     */
+    public function masaKerjaLimaTahun(Request $request)
+    {
+        // Ambil semua pegawai aktif
+        $pegawaiList = Pegawai::with('golongan')
+            ->where('status', 'aktif')
+            ->get();
+        // Filter pegawai dengan masa kerja > 5 tahun
+        $data = [];
+        foreach ($pegawaiList as $pegawai) {
+            $tanggalMasuk = Carbon::parse($pegawai->tanggal_masuk);
+            $masaKerjaTahun = $tanggalMasuk->diffInYears(Carbon::now());
+            $masaKerjaBulan = $tanggalMasuk->diffInMonths(Carbon::now()) % 12;
+            if ($masaKerjaTahun > 5) {
+                // Ambil gaji terakhir pegawai
+                $gajiTerakhir = KomponenGaji::where('pegawai_id', $pegawai->id)
+                    ->orderBy('tahun', 'desc')
+                    ->orderBy('bulan', 'desc')
+                    ->first();
+                $data[] = (object) [
+                    'pegawai' => $pegawai,
+                    'masa_kerja_tahun' => $masaKerjaTahun,
+                    'masa_kerja_bulan' => $masaKerjaBulan,
+                    'gaji_terakhir' => $gajiTerakhir->gaji_bersih ?? 0,
+                    'tanggal_masuk' => $pegawai->tanggal_masuk,
+                ];
+            }
+        }
+        // Urutkan berdasarkan masa kerja tertinggi
+        usort($data, function ($a, $b) {
+            return $b->masa_kerja_tahun <=> $a->masa_kerja_tahun;
+        });
+        return view('laporan.masa-kerja-5-tahun', compact('data'));
+    }
+
+    /**
+     * LAPORAN 7: Urutan Gaji Bersih Tertinggi (Top 10)
+     */
+    public function urutanGajiBersih(Request $request)
+    {
+        $query = KomponenGaji::with('pegawai.golongan')
+            ->where('status', 'selesai');
+        // Filter periode
+        if ($request->filled('bulan')) {
+            $query->where('bulan', $request->bulan);
+        }
+        if ($request->filled('tahun')) {
+            $query->where('tahun', $request->tahun);
+        }
+        // Ambil 10 gaji tertinggi
+        $data = $query->orderBy('gaji_bersih', 'desc')
+            ->take(10)
+            ->get();
+        // Tambahkan peringkat
+        $ranking = 1;
+        foreach ($data as $item) {
+            $item->peringkat = $ranking++;
+        }
+        $bulanList = $this->getBulanList();
+        $tahunList = range(2023, date('Y'));
+        return view('laporan.urutan-gaji-bersih', compact('data', 'bulanList', 'tahunList'));
+    }
+
+    /**
+     * LAPORAN 8: Jumlah Pegawai per Golongan
+     */
+    public function jumlahPegawaiPerGolongan(Request $request)
+    {
+        // Menggunakan withCount untuk menghitung jumlah pegawai per golongan
+        $data = Golongan::withCount(['pegawai' => function ($query) {
+            $query->where('status', 'aktif');
+        }])
+            ->orderBy('kode')
+            ->get();
+        // Data untuk chart
+        $chartLabels = [];
+        $chartData = [];
+        foreach ($data as $item) {
+            $chartLabels[] = $item->kode . ' - ' . $item->nama_golongan;
+            $chartData[] = $item->pegawai_count;
+        }
+        return view('laporan.jumlah-pegawai-per-golongan', compact(
+            'data',
+            'chartLabels',
+            'chartData'
+        ));
+    }
+
+    /**
+     * LAPORAN 9: Rekap Tunjangan Makan & Transport per Bulan
+     */
+    public function rekapTunjangan(Request $request)
+    {
+        $query = KomponenGaji::select(
+            'tahun',
+            'bulan',
+            DB::raw('SUM(tunjangan_makan) as total_tunjangan_makan'),
+            DB::raw('SUM(tunjangan_transport) as total_tunjangan_transport'),
+            DB::raw('SUM(tunjangan_lainnya) as total_tunjangan_lainnya'),
+            DB::raw('COUNT(*) as jumlah_pegawai')
+        )->groupBy('tahun', 'bulan')
+            ->orderBy('tahun', 'desc')
+            ->orderBy('bulan', 'desc');
+        // Filter tahun
+        if ($request->filled('tahun')) {
+            $query->where('tahun', $request->tahun);
+        }
+        $data = $query->get();
+        $tahunList = range(2023, date('Y'));
+        $bulanList = $this->getBulanList();
+        // Data untuk chart
+        $chartBulan = [];
+        $chartMakan = [];
+        $chartTransport = [];
+        foreach ($data->reverse() as $item) {
+            $chartBulan[] = $bulanList[$item->bulan] . ' ' . $item->tahun;
+            $chartMakan[] = $item->total_tunjangan_makan;
+            $chartTransport[] = $item->total_tunjangan_transport;
+        }
+        return view('laporan.rekap-tunjangan', compact(
+            'data',
+            'tahunList',
+            'bulanList',
+            'chartBulan',
+            'chartMakan',
+            'chartTransport'
+        ));
+    }
+
+    /**
+     * LAPORAN 10: Perbandingan Gaji Pokok & Potongan
+     */
+    public function perbandinganGajiPotongan(Request $request)
+    {
+        // Hitung rata-rata gaji pokok dan potongan per golongan
+        $data = Golongan::with(['pegawai' => function ($query) {
+            $query->where('status', 'aktif');
+        }])
+            ->get();
+        $perbandingan = [];
+        foreach ($data as $golongan) {
+            // Ambil data penggajian untuk pegawai golongan ini
+            $pegawaiIds = $golongan->pegawai->pluck('id')->toArray();
+            $stats = KomponenGaji::whereIn('pegawai_id', $pegawaiIds)
+                ->select(
+                    DB::raw('AVG(gaji_pokok) as rata_gaji_pokok'),
+                    DB::raw('AVG(total_potongan) as rata_potongan')
+                )->first();
+            $perbandingan[] = (object) [
+                'golongan' => $golongan,
+                'rata_gaji_pokok' => $stats->rata_gaji_pokok ?? 0,
+                'rata_potongan' => $stats->rata_potongan ?? 0,
+                'jumlah_pegawai' => $golongan->pegawai->count(),
+            ];
+        }
+        // Data untuk chart
+        $chartLabels = [];
+        $chartGajiPokok = [];
+        $chartPotongan = [];
+        foreach ($perbandingan as $item) {
+            $chartLabels[] = $item->golongan->kode;
+            $chartGajiPokok[] = $item->rata_gaji_pokok;
+            $chartPotongan[] = $item->rata_potongan;
+        }
+        // Hitung rata-rata keseluruhan
+        $totalRataGaji = KomponenGaji::avg('gaji_pokok');
+        $totalRataPotongan = KomponenGaji::avg('total_potongan');
+        $persentasePotongan = $totalRataGaji > 0 ? ($totalRataPotongan / $totalRataGaji) * 100 :
+            0;
+        return view('laporan.perbandingan-gaji-potongan', compact(
+            'perbandingan',
+            'chartLabels',
+            'chartGajiPokok',
+            'chartPotongan',
+            'totalRataGaji',
+            'totalRataPotongan',
+            'persentasePotongan'
+        ));
     }
 }
