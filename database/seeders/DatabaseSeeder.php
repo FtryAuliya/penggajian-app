@@ -14,7 +14,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             GolonganSeeder::class,
             PegawaiSeeder::class,
-            KomponenGajiSeeder::class, // Tambahkan baris ini
+            KomponenGajiSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }
